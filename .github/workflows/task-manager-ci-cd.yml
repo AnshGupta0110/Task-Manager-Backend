@@ -32,21 +32,32 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
 
-      - name: Build Docker image
-        run: docker build -t task_manager-backend ./backend
-
-      - name: Run container and wait for MySQL
+      - name: Install dependencies
         run: |
-          docker run -d --name backend_test \
-            -e DB_HOST=mysql \
-            -e DB_USER=user \
-            -e DB_PASSWORD=password \
-            -e DB_NAME=task_manager_db \
-            task_manager-backend
-          sleep 20  # wait for MySQL to fully start
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
 
-      - name: Run tests inside container
-        run: docker exec backend_test pytest -v
+      - name: Wait for MySQL to be ready
+        run: |
+          for i in {1..30}; do
+            if mysql -h 127.0.0.1 -u user -ppassword task_manager_db -e "SELECT 1" &> /dev/null; then
+              echo "MySQL is up!"
+              break
+            fi
+            echo "Waiting for MySQL..."
+            sleep 2
+          done
+
+      - name: Run tests
+        env:
+          DB_HOST: 127.0.0.1
+          DB_USER: user
+          DB_PASSWORD: password
+          DB_NAME: task_manager_db
+        run: |
+          pytest -v backend/tests
