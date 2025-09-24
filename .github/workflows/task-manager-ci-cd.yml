@@ -41,7 +41,6 @@ jobs:
       - name: Run container and wait for MySQL
         run: |
           docker run -d --name backend_test \
-            --link mysql:mysql \
             -e DB_HOST=mysql \
             -e DB_USER=user \
             -e DB_PASSWORD=password \
