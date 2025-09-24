@@ -26,7 +26,7 @@ jobs:
           --health-cmd="mysqladmin ping --silent"
           --health-interval=10s
           --health-timeout=5s
-          --health-retries=3
+          --health-retries=5
 
     steps:
       - name: Checkout repository
@@ -38,16 +38,16 @@ jobs:
       - name: Build Docker image
         run: docker build -t task_manager-backend ./backend
 
-      - name: Run container with env for MySQL
+      - name: Run container and wait for MySQL
         run: |
-          docker run -d \
-            --name backend_test \
-            -e DB_HOST=host.docker.internal \
+          docker run -d --name backend_test \
+            --link mysql:mysql \
+            -e DB_HOST=mysql \
             -e DB_USER=user \
             -e DB_PASSWORD=password \
             -e DB_NAME=task_manager_db \
             task_manager-backend
-          sleep 15  # wait for MySQL to be ready
+          sleep 20  # wait for MySQL to fully start
 
       - name: Run tests inside container
         run: docker exec backend_test pytest -v
