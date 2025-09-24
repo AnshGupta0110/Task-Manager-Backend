@@ -38,13 +38,16 @@ jobs:
       - name: Build Docker image
         run: docker build -t task_manager-backend ./backend
 
-
-
-      - name: Run container and wait for MySQL
+      - name: Run container with env for MySQL
         run: |
-          docker run -d --name backend_test --link mysql:mysql task_manager-backend
+          docker run -d \
+            --name backend_test \
+            -e DB_HOST=host.docker.internal \
+            -e DB_USER=user \
+            -e DB_PASSWORD=password \
+            -e DB_NAME=task_manager_db \
+            task_manager-backend
           sleep 15  # wait for MySQL to be ready
 
       - name: Run tests inside container
-        run: |
-          docker exec backend_test pytest -v
+        run: docker exec backend_test pytest -v
