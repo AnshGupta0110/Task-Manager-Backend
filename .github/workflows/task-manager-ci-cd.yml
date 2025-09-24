@@ -36,7 +36,8 @@ jobs:
         uses: docker/setup-buildx-action@v2
 
       - name: Build Docker image
-        run: docker build -t task_manager-backend ./task_manager/backend
+        run: docker build -t task_manager-backend ./backend
+
 
 
       - name: Run container and wait for MySQL
